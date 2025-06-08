@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Main application database
+  postgres:
+    image: postgres:17-alpine
+    container_name: orto_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-orto_db}
+      POSTGRES_USER: ${POSTGRES_USER:-orto_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orto_password}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - orto_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-orto_user} -d ${POSTGRES_DB:-orto_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache - Session management and caching
+  redis:
+    image: redis:7-alpine
+    container_name: orto_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-orto_redis_password}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - orto_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  # Eclipse Mosquitto MQTT Broker - IoT sensor communication
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: orto_mosquitto
+    restart: unless-stopped
+    ports:
+      - "${MQTT_PORT:-1883}:1883"        # MQTT
+      - "${MQTT_WS_PORT:-9001}:9001"     # MQTT over WebSocket
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+      - mosquitto_data:/mosquitto/data
+    networks:
+      - orto_network
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_pub -h localhost -t test -m test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    depends_on:
+      - postgres
+
+  # InfluxDB - Time series database for sensor data
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: orto_influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USERNAME:-orto_admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD:-orto_influx_password}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG:-orto}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET:-sensor_data}
+      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUXDB_RETENTION:-8760h}  # 1 year
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN:-orto_admin_token_change_in_production}
+    ports:
+      - "${INFLUXDB_PORT:-8086}:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    networks:
+      - orto_network
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Optional: PostgreSQL Admin Interface (pgAdmin)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: orto_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@orto.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin_password}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "${PGADMIN_PORT:-8080}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - orto_network
+    depends_on:
+      - postgres
+    profiles:
+      - admin
+
+  # Optional: Redis Commander - Redis management interface
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: orto_redis_commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: "local:redis:6379:0:${REDIS_PASSWORD:-orto_redis_password}"
+      HTTP_USER: ${REDIS_COMMANDER_USER:-admin}
+      HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:-admin_password}
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+    networks:
+      - orto_network
+    depends_on:
+      - redis
+    profiles:
+      - admin
+
+# Persistent volumes
+volumes:
+  postgres_data:
+    driver: local
+    name: orto_postgres_data
+  redis_data:
+    driver: local
+    name: orto_redis_data
+  mosquitto_data:
+    driver: local
+    name: orto_mosquitto_data
+  influxdb_data:
+    driver: local
+    name: orto_influxdb_data
+  influxdb_config:
+    driver: local
+    name: orto_influxdb_config
+  pgadmin_data:
+    driver: local
+    name: orto_pgadmin_data
+
+# Dedicated network for service communication
+networks:
+  orto_network:
+    driver: bridge
+    name: orto_network

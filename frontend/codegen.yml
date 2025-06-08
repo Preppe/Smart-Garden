@@ -1,0 +1,25 @@
+overwrite: true
+schema: "../backend/src/schema.gql"
+documents: "src/graphql/**/*.graphql"
+generates:
+  src/graphql/generated/types.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+    config:
+      scalars:
+        DateTime: string
+      enumsAsTypes: true
+      constEnums: true
+      futureProofEnums: true
+      exportFragmentSpreadSubTypes: true
+      maybeValue: T | null | undefined
+      inputMaybeValue: T | null | undefined
+      withHooks: true
+      withHOC: false
+      withComponent: false
+      
+  src/graphql/generated/introspection.json:
+    plugins:
+      - "introspection"

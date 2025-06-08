@@ -1,0 +1,48 @@
+# Authentication Queries
+query Me {
+  me {
+    id
+    email
+    firstName
+    lastName
+    fullName
+    role
+    subscriptionPlan
+    isActive
+    isEmailVerified
+    createdAt
+    updatedAt
+  }
+}
+
+query GetUser($id: String!) {
+  user(id: $id) {
+    id
+    email
+    firstName
+    lastName
+    fullName
+    role
+    subscriptionPlan
+    isActive
+    isEmailVerified
+    createdAt
+    updatedAt
+  }
+}
+
+query GetUsers {
+  users {
+    id
+    email
+    firstName
+    lastName
+    fullName
+    role
+    subscriptionPlan
+    isActive
+    isEmailVerified
+    createdAt
+    updatedAt
+  }
+}

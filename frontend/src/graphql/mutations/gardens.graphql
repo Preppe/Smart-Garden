@@ -1,0 +1,136 @@
+# Garden Mutations
+mutation CreateGarden($input: CreateGardenInput!) {
+  createGarden(input: $input) {
+    id
+    name
+    description
+    type
+    location {
+      address
+      latitude
+      longitude
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateGarden($id: ID!, $input: UpdateGardenInput!) {
+  updateGarden(id: $id, input: $input) {
+    id
+    name
+    description
+    type
+    location {
+      address
+      latitude
+      longitude
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteGarden($id: ID!) {
+  deleteGarden(id: $id)
+}
+
+# Cultivation Mutations
+mutation CreateCultivation($input: CreateCultivationInput!) {
+  createCultivation(input: $input) {
+    id
+    plantName
+    variety
+    growthStage
+    plantedDate
+    expectedHarvestDate
+    notes
+    garden {
+      id
+      name
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateCultivation($id: ID!, $input: UpdateCultivationInput!) {
+  updateCultivation(id: $id, input: $input) {
+    id
+    plantName
+    variety
+    growthStage
+    plantedDate
+    expectedHarvestDate
+    notes
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteCultivation($id: ID!) {
+  deleteCultivation(id: $id)
+}
+
+# Sensor Mutations
+mutation CreateSensor($input: CreateSensorInput!) {
+  createSensor(input: $input) {
+    id
+    name
+    type
+    unit
+    deviceId
+    isActive
+    locationLevel
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateSensor($id: ID!, $input: UpdateSensorInput!) {
+  updateSensor(id: $id, input: $input) {
+    id
+    name
+    type
+    unit
+    deviceId
+    isActive
+    locationLevel
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteSensor($id: ID!) {
+  deleteSensor(id: $id)
+}

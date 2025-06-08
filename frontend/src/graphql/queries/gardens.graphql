@@ -1,0 +1,103 @@
+# Garden Queries
+query GetUserGardens {
+  getUserGardens {
+    id
+    name
+    description
+    type
+    location {
+      address
+      latitude
+      longitude
+    }
+    cultivations {
+      id
+      plantName
+      variety
+      growthStage
+      plantedDate
+      expectedHarvestDate
+      notes
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetGarden($id: ID!) {
+  getGarden(id: $id) {
+    id
+    name
+    description
+    type
+    location {
+      address
+      latitude
+      longitude
+    }
+    cultivations {
+      id
+      plantName
+      variety
+      growthStage
+      plantedDate
+      expectedHarvestDate
+      notes
+    }
+    sensors {
+      id
+      name
+      type
+      unit
+      deviceId
+      isActive
+      locationLevel
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetGardenSensors($gardenId: ID!) {
+  getGardenSensors(gardenId: $gardenId) {
+    id
+    name
+    type
+    unit
+    deviceId
+    isActive
+    locationLevel
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+# Cultivation Queries
+query GetUserCultivations {
+  getUserCultivations {
+    id
+    plantName
+    variety
+    growthStage
+    plantedDate
+    expectedHarvestDate
+    notes
+    garden {
+      id
+      name
+    }
+    createdAt
+    updatedAt
+  }
+}

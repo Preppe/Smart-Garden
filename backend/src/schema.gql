@@ -1,0 +1,285 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AuthResponse {
+  accessToken: String!
+  user: User!
+}
+
+input CreateCultivationInput {
+  expectedHarvestDate: DateTime
+  gardenId: ID!
+  growthStage: GrowthStage
+  notes: String
+  plantName: String!
+  plantedDate: DateTime!
+  variety: String
+}
+
+input CreateGardenInput {
+  description: String
+  location: GardenLocationInput
+  name: String!
+  type: GardenType!
+}
+
+input CreateSensorInput {
+  calibration: SensorCalibrationInput
+  cultivationId: ID
+  deviceId: String!
+  gardenId: ID
+  isActive: Boolean
+  locationLevel: SensorLocationLevel!
+  name: String!
+  thresholds: SensorThresholdsInput
+  type: SensorType!
+  unit: String!
+}
+
+input CreateUserInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  role: UserRole
+  subscriptionPlan: SubscriptionPlan
+}
+
+type Cultivation {
+  createdAt: DateTime!
+  expectedHarvestDate: DateTime
+  garden: Garden!
+  growthStage: GrowthStage!
+  id: ID!
+  notes: String
+  plantName: String!
+  plantedDate: DateTime!
+  sensors: [Sensor!]!
+  updatedAt: DateTime!
+  variety: String
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Garden {
+  createdAt: DateTime!
+  cultivations: [Cultivation!]!
+  description: String
+  id: ID!
+  location: GardenLocation
+  name: String!
+  sensors: [Sensor!]!
+  type: GardenType!
+  updatedAt: DateTime!
+  user: User!
+}
+
+type GardenLocation {
+  address: String
+  latitude: Float
+  longitude: Float
+}
+
+input GardenLocationInput {
+  address: String
+  latitude: Float
+  longitude: Float
+}
+
+"""Type of garden"""
+enum GardenType {
+  GREENHOUSE
+  INDOOR
+  OUTDOOR
+}
+
+"""Growth stage of the plant"""
+enum GrowthStage {
+  FLOWERING
+  FRUITING
+  HARVEST
+  SEED
+  SEEDLING
+  VEGETATIVE
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  createCultivation(input: CreateCultivationInput!): Cultivation!
+  createGarden(input: CreateGardenInput!): Garden!
+  createSensor(input: CreateSensorInput!): Sensor!
+  createUser(createUserInput: CreateUserInput!): User!
+  deleteCultivation(id: ID!): Boolean!
+  deleteGarden(id: ID!): Boolean!
+  deleteSensor(id: ID!): Boolean!
+  login(loginInput: LoginInput!): AuthResponse!
+  logout: Boolean!
+  register(registerInput: RegisterInput!): AuthResponse!
+  removeUser(id: String!): Boolean!
+  updateCultivation(id: ID!, input: UpdateCultivationInput!): Cultivation!
+  updateGarden(id: ID!, input: UpdateGardenInput!): Garden!
+  updateProfile(updateProfileInput: UpdateProfileInput!): User!
+  updateSensor(id: ID!, input: UpdateSensorInput!): Sensor!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+}
+
+type Query {
+  getCultivation(id: ID!): Cultivation!
+  getCultivationSensors(cultivationId: ID!): [Sensor!]!
+  getGarden(id: ID!): Garden!
+  getGardenSensors(gardenId: ID!): [Sensor!]!
+  getSensor(id: ID!): Sensor!
+  getUserCultivations: [Cultivation!]!
+  getUserGardens: [Garden!]!
+  getUserSensors: [Sensor!]!
+  me: User!
+  user(id: String!): User!
+  users: [User!]!
+}
+
+input RegisterInput {
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+}
+
+type Sensor {
+  calibration: SensorCalibration
+  createdAt: DateTime!
+  cultivation: Cultivation
+  deviceId: String!
+  garden: Garden
+  id: ID!
+  isActive: Boolean!
+  locationLevel: SensorLocationLevel!
+  name: String!
+  thresholds: SensorThresholds
+  type: SensorType!
+  unit: String!
+  updatedAt: DateTime!
+}
+
+type SensorCalibration {
+  lastCalibrated: DateTime
+  multiplier: Float
+  offset: Float
+}
+
+input SensorCalibrationInput {
+  lastCalibrated: DateTime
+  multiplier: Float
+  offset: Float
+}
+
+"""Level where the sensor is installed"""
+enum SensorLocationLevel {
+  CULTIVATION
+  GARDEN
+}
+
+type SensorThresholds {
+  max: Float
+  min: Float
+  optimal_max: Float
+  optimal_min: Float
+}
+
+input SensorThresholdsInput {
+  max: Float
+  min: Float
+  optimal_max: Float
+  optimal_min: Float
+}
+
+"""Type of sensor measurement"""
+enum SensorType {
+  AIR_QUALITY
+  HUMIDITY
+  LIGHT
+  PH
+  SOIL_MOISTURE
+  TEMPERATURE
+}
+
+"""User subscription plan"""
+enum SubscriptionPlan {
+  BASIC
+  ENTERPRISE
+  FREE
+  PREMIUM
+}
+
+input UpdateCultivationInput {
+  expectedHarvestDate: DateTime
+  growthStage: GrowthStage
+  notes: String
+  plantName: String
+  plantedDate: DateTime
+  variety: String
+}
+
+input UpdateGardenInput {
+  description: String
+  location: GardenLocationInput
+  name: String
+  type: GardenType
+}
+
+input UpdateProfileInput {
+  firstName: String
+  lastName: String
+}
+
+input UpdateSensorInput {
+  calibration: SensorCalibrationInput
+  cultivationId: ID
+  deviceId: String
+  gardenId: ID
+  isActive: Boolean
+  locationLevel: SensorLocationLevel
+  name: String
+  thresholds: SensorThresholdsInput
+  type: SensorType
+  unit: String
+}
+
+input UpdateUserInput {
+  email: String
+  firstName: String
+  id: ID!
+  isActive: Boolean
+  isEmailVerified: Boolean
+  lastName: String
+  role: UserRole
+  subscriptionPlan: SubscriptionPlan
+}
+
+type User {
+  createdAt: DateTime!
+  email: String!
+  firstName: String!
+  fullName: String!
+  id: ID!
+  isActive: Boolean!
+  isEmailVerified: Boolean!
+  lastName: String!
+  role: UserRole!
+  subscriptionPlan: SubscriptionPlan!
+  updatedAt: DateTime!
+}
+
+"""User role in the system"""
+enum UserRole {
+  ADMIN
+  MODERATOR
+  USER
+}

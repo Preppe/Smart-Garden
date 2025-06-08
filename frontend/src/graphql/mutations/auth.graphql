@@ -1,0 +1,42 @@
+# Authentication Mutations
+mutation LoginUser($loginInput: LoginInput!) {
+  login(loginInput: $loginInput) {
+    accessToken
+    user {
+      id
+      email
+      firstName
+      lastName
+      fullName
+      role
+      subscriptionPlan
+      isActive
+      isEmailVerified
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+mutation RegisterUser($registerInput: RegisterInput!) {
+  register(registerInput: $registerInput) {
+    accessToken
+    user {
+      id
+      email
+      firstName
+      lastName
+      fullName
+      role
+      subscriptionPlan
+      isActive
+      isEmailVerified
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+mutation LogoutUser {
+  logout
+}

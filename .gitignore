@@ -1,0 +1,131 @@
+# ==============================================
+# Orto Smart Garden - Root .gitignore
+# ==============================================
+
+# Environment variables (contains sensitive data)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Docker data directories
+mosquitto/data/
+mosquitto/log/
+
+# Database backups
+*.sql
+*.dump
+
+# Docker volumes (if using bind mounts)
+postgres_data/
+redis_data/
+pgadmin_data/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# ==============================================
+# Project specific ignores
+# ==============================================
+
+# Docker override files
+docker-compose.override.yml
+
+# SSL certificates (for production)
+certs/
+ssl/
+
+# Backup files
+backup/
+*.backup
+
+# Development database files
+*.sqlite
+*.sqlite3
+*.db
