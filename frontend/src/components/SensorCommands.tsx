@@ -1,24 +1,7 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import { Send, Settings, Zap, RefreshCw, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-
-const commandSchema = z.object({
-  command: z.string().min(1, 'Comando è obbligatorio'),
-  parameters: z.string().optional(),
-});
-
-type CommandFormData = z.infer<typeof commandSchema>;
 
 interface SensorCommandsProps {
   sensorId: string;
