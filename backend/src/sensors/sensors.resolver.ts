@@ -6,6 +6,10 @@ import { SensorsService } from './sensors.service';
 import { Sensor } from './entities/sensor.entity';
 import { CreateSensorInput } from './dto/create-sensor.input';
 import { UpdateSensorInput } from './dto/update-sensor.input';
+import { SensorDataQueryInput } from './dto/sensor-data-query.input';
+import { SendCommandInput } from './dto/send-command.input';
+import { MqttConnectionInfo } from './dto/mqtt-connection-info.response';
+import { SensorDataPoint } from './dto/sensor-data-point.response';
 
 @Resolver(() => Sensor)
 @UseGuards(JwtAuthGuard)
@@ -51,5 +55,36 @@ export class SensorsResolver {
   @Mutation(() => Boolean)
   async deleteSensor(@Args('id', { type: () => ID }) id: string, @CurrentUser('sub') userId: string): Promise<boolean> {
     return this.sensorsService.deleteSensor(id, userId);
+  }
+
+  // MQTT and Data Queries
+  @Query(() => MqttConnectionInfo, { name: 'getMqttConnectionInfo' })
+  async getMqttConnectionInfo(@Args('sensorId', { type: () => ID }) sensorId: string, @CurrentUser('sub') userId: string): Promise<MqttConnectionInfo> {
+    return this.sensorsService.getMqttConnectionInfo(sensorId, userId);
+  }
+
+  @Query(() => [SensorDataPoint], { name: 'getSensorData' })
+  async getSensorData(
+    @Args('sensorId', { type: () => ID }) sensorId: string,
+    @Args('query') query: SensorDataQueryInput,
+    @CurrentUser('sub') userId: string,
+  ): Promise<SensorDataPoint[]> {
+    return this.sensorsService.getSensorData(sensorId, userId, query);
+  }
+
+  @Query(() => SensorDataPoint, { name: 'getLatestSensorValue', nullable: true })
+  async getLatestSensorValue(@Args('sensorId', { type: () => ID }) sensorId: string, @CurrentUser('sub') userId: string): Promise<SensorDataPoint | null> {
+    return this.sensorsService.getLatestSensorValue(sensorId, userId);
+  }
+
+  // MQTT Commands
+  @Mutation(() => Boolean)
+  async sendSensorCommand(
+    @Args('sensorId', { type: () => ID }) sensorId: string,
+    @Args('input') input: SendCommandInput,
+    @CurrentUser('sub') userId: string,
+  ): Promise<boolean> {
+    await this.sensorsService.sendSensorCommand(sensorId, userId, input.command, input.parameters);
+    return true;
   }
 }

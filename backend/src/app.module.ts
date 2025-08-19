@@ -15,6 +15,7 @@ import { SensorsModule } from './sensors/sensors.module';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
 import mqttConfig from './config/mqtt.config';
+import influxdbConfig from './config/influxdb.config';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import mqttConfig from './config/mqtt.config';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [databaseConfig, redisConfig, mqttConfig],
+      load: [databaseConfig, redisConfig, mqttConfig, influxdbConfig],
       validate,
       cache: true,
       expandVariables: true,

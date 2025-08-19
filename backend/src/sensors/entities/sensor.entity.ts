@@ -91,6 +91,18 @@ export class Sensor {
   @Column({ default: true })
   isActive: boolean;
 
+  @Field()
+  @Column({ unique: true })
+  mqttTopic: string;
+
+  @Field()
+  @Column({ unique: true })
+  connectionToken: string;
+
+  @Field(() => Date, { nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
+  lastDataReceived?: Date;
+
   @Field(() => SensorCalibration, { nullable: true })
   @Column('json', { nullable: true })
   calibration?: SensorCalibration;

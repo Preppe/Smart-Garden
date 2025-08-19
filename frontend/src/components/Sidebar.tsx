@@ -110,6 +110,12 @@ const Sidebar = ({ className }: SidebarProps) => {
       icon: Sprout,
       description: 'Aggiungi una pianta',
     },
+    {
+      name: 'Nuovo Sensore',
+      href: '/sensors/new',
+      icon: Activity,
+      description: 'Configura un sensore IoT',
+    },
   ];
 
   return (

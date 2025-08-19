@@ -15,6 +15,9 @@ import GardenFormPage from './pages/gardens/GardenFormPage';
 import CultivationsListPage from './pages/cultivations/CultivationsListPage';
 import CultivationFormPage from './pages/cultivations/CultivationFormPage';
 import CultivationDetailPage from './pages/cultivations/CultivationDetailPage';
+import SensorsListPage from './pages/sensors/SensorsListPage';
+import SensorFormPage from './pages/sensors/SensorFormPage';
+import SensorDetailPage from './pages/sensors/SensorDetailPage';
 import AuthPage from './pages/auth/AuthPage';
 
 
@@ -138,6 +141,46 @@ const App = () => {
                   <ProtectedRoute>
                     <Layout title="Modifica Coltivazione" description="Modifica la tua pianta">
                       <CultivationFormPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sensors"
+                element={
+                  <ProtectedRoute>
+                    <Layout title="Sensori" description="Gestione dei sensori IoT">
+                      <SensorsListPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sensors/new"
+                element={
+                  <ProtectedRoute>
+                    <Layout title="Nuovo Sensore" description="Aggiungi un nuovo sensore IoT">
+                      <SensorFormPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sensors/:id"
+                element={
+                  <ProtectedRoute>
+                    <Layout title="Dettagli Sensore" description="Monitoraggio e controllo del sensore">
+                      <SensorDetailPage />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sensors/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <Layout title="Modifica Sensore" description="Modifica la configurazione del sensore">
+                      <SensorFormPage />
                     </Layout>
                   </ProtectedRoute>
                 }

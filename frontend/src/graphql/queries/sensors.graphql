@@ -1,0 +1,157 @@
+query GetUserSensors {
+  getUserSensors {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    connectionToken
+    lastDataReceived
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetSensor($id: ID!) {
+  getSensor(id: $id) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    connectionToken
+    lastDataReceived
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    garden {
+      id
+      name
+      user {
+        id
+      }
+    }
+    cultivation {
+      id
+      plantName
+      garden {
+        id
+        name
+        user {
+          id
+        }
+      }
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetMqttConnectionInfo($sensorId: ID!) {
+  getMqttConnectionInfo(sensorId: $sensorId) {
+    host
+    port
+    wsPort
+    dataTopicPublish
+    commandTopicSubscribe
+    statusTopicPublish
+    token
+    keepalive
+    clientIdPrefix
+  }
+}
+
+query GetSensorData($sensorId: ID!, $query: SensorDataQueryInput!) {
+  getSensorData(sensorId: $sensorId, query: $query) {
+    time
+    value
+    sensorId
+    userId
+  }
+}
+
+query GetLatestSensorValue($sensorId: ID!) {
+  getLatestSensorValue(sensorId: $sensorId) {
+    time
+    value
+    sensorId
+    userId
+  }
+}
+
+query GetAllGardenSensors($gardenId: ID!) {
+  getGardenSensors(gardenId: $gardenId) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    lastDataReceived
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+  }
+}
+
+query GetCultivationSensors($cultivationId: ID!) {
+  getCultivationSensors(cultivationId: $cultivationId) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    lastDataReceived
+    cultivation {
+      id
+      plantName
+      garden {
+        id
+        name
+      }
+    }
+  }
+}

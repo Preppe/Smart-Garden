@@ -17,6 +17,8 @@ export type Scalars = {
   Float: { input: number; output: number; }
   /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
   DateTime: { input: string; output: string; }
+  /** The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
+  JSONObject: { input: any; output: any; }
 };
 
 export type AuthResponse = {
@@ -128,6 +130,19 @@ export type LoginInput = {
   password: Scalars['String']['input'];
 };
 
+export type MqttConnectionInfo = {
+  __typename?: 'MqttConnectionInfo';
+  clientIdPrefix: Scalars['String']['output'];
+  commandTopicSubscribe: Scalars['String']['output'];
+  dataTopicPublish: Scalars['String']['output'];
+  host: Scalars['String']['output'];
+  keepalive: Scalars['Int']['output'];
+  port: Scalars['Int']['output'];
+  statusTopicPublish: Scalars['String']['output'];
+  token: Scalars['String']['output'];
+  wsPort: Scalars['Int']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   createCultivation: Cultivation;
@@ -141,6 +156,7 @@ export type Mutation = {
   logout: Scalars['Boolean']['output'];
   register: AuthResponse;
   removeUser: Scalars['Boolean']['output'];
+  sendSensorCommand: Scalars['Boolean']['output'];
   updateCultivation: Cultivation;
   updateGarden: Garden;
   updateProfile: User;
@@ -199,6 +215,12 @@ export type MutationRemoveUserArgs = {
 };
 
 
+export type MutationSendSensorCommandArgs = {
+  input: SendCommandInput;
+  sensorId: Scalars['ID']['input'];
+};
+
+
 export type MutationUpdateCultivationArgs = {
   id: Scalars['ID']['input'];
   input: UpdateCultivationInput;
@@ -232,7 +254,10 @@ export type Query = {
   getCultivationSensors: Array<Sensor>;
   getGarden: Garden;
   getGardenSensors: Array<Sensor>;
+  getLatestSensorValue?: Maybe<SensorDataPoint>;
+  getMqttConnectionInfo: MqttConnectionInfo;
   getSensor: Sensor;
+  getSensorData: Array<SensorDataPoint>;
   getUserCultivations: Array<Cultivation>;
   getUserGardens: Array<Garden>;
   getUserSensors: Array<Sensor>;
@@ -262,8 +287,24 @@ export type QueryGetGardenSensorsArgs = {
 };
 
 
+export type QueryGetLatestSensorValueArgs = {
+  sensorId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetMqttConnectionInfoArgs = {
+  sensorId: Scalars['ID']['input'];
+};
+
+
 export type QueryGetSensorArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetSensorDataArgs = {
+  query: SensorDataQueryInput;
+  sensorId: Scalars['ID']['input'];
 };
 
 
@@ -278,16 +319,24 @@ export type RegisterInput = {
   password: Scalars['String']['input'];
 };
 
+export type SendCommandInput = {
+  command: Scalars['String']['input'];
+  parameters?: InputMaybe<Scalars['JSONObject']['input']>;
+};
+
 export type Sensor = {
   __typename?: 'Sensor';
   calibration?: Maybe<SensorCalibration>;
+  connectionToken: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   cultivation?: Maybe<Cultivation>;
   deviceId: Scalars['String']['output'];
   garden?: Maybe<Garden>;
   id: Scalars['ID']['output'];
   isActive: Scalars['Boolean']['output'];
+  lastDataReceived?: Maybe<Scalars['DateTime']['output']>;
   locationLevel: SensorLocationLevel;
+  mqttTopic: Scalars['String']['output'];
   name: Scalars['String']['output'];
   thresholds?: Maybe<SensorThresholds>;
   type: SensorType;
@@ -306,6 +355,20 @@ export type SensorCalibrationInput = {
   lastCalibrated?: InputMaybe<Scalars['DateTime']['input']>;
   multiplier?: InputMaybe<Scalars['Float']['input']>;
   offset?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type SensorDataPoint = {
+  __typename?: 'SensorDataPoint';
+  sensorId: Scalars['String']['output'];
+  time: Scalars['String']['output'];
+  userId: Scalars['String']['output'];
+  value: Scalars['Float']['output'];
+};
+
+export type SensorDataQueryInput = {
+  aggregateWindow?: InputMaybe<Scalars['String']['input']>;
+  start: Scalars['String']['input'];
+  stop?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Level where the sensor is installed */
@@ -499,6 +562,29 @@ export type DeleteSensorMutationVariables = Exact<{
 
 export type DeleteSensorMutation = { __typename?: 'Mutation', deleteSensor: boolean };
 
+export type CreateNewSensorMutationVariables = Exact<{
+  input: CreateSensorInput;
+}>;
+
+
+export type CreateNewSensorMutation = { __typename?: 'Mutation', createSensor: { __typename?: 'Sensor', id: string, deviceId: string, name: string, type: SensorType, unit: string, locationLevel: SensorLocationLevel, isActive: boolean, mqttTopic: string, connectionToken: string, lastDataReceived?: string | null | undefined, createdAt: string, updatedAt: string, calibration?: { __typename?: 'SensorCalibration', offset?: number | null | undefined, multiplier?: number | null | undefined, lastCalibrated?: string | null | undefined } | null | undefined, thresholds?: { __typename?: 'SensorThresholds', min?: number | null | undefined, max?: number | null | undefined, optimal_min?: number | null | undefined, optimal_max?: number | null | undefined } | null | undefined, garden?: { __typename?: 'Garden', id: string, name: string } | null | undefined, cultivation?: { __typename?: 'Cultivation', id: string, plantName: string } | null | undefined } };
+
+export type UpdateExistingSensorMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateSensorInput;
+}>;
+
+
+export type UpdateExistingSensorMutation = { __typename?: 'Mutation', updateSensor: { __typename?: 'Sensor', id: string, deviceId: string, name: string, type: SensorType, unit: string, locationLevel: SensorLocationLevel, isActive: boolean, mqttTopic: string, connectionToken: string, lastDataReceived?: string | null | undefined, createdAt: string, updatedAt: string, calibration?: { __typename?: 'SensorCalibration', offset?: number | null | undefined, multiplier?: number | null | undefined, lastCalibrated?: string | null | undefined } | null | undefined, thresholds?: { __typename?: 'SensorThresholds', min?: number | null | undefined, max?: number | null | undefined, optimal_min?: number | null | undefined, optimal_max?: number | null | undefined } | null | undefined, garden?: { __typename?: 'Garden', id: string, name: string } | null | undefined, cultivation?: { __typename?: 'Cultivation', id: string, plantName: string } | null | undefined } };
+
+export type SendSensorCommandMutationVariables = Exact<{
+  sensorId: Scalars['ID']['input'];
+  input: SendCommandInput;
+}>;
+
+
+export type SendSensorCommandMutation = { __typename?: 'Mutation', sendSensorCommand: boolean };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -539,6 +625,54 @@ export type GetUserCultivationsQueryVariables = Exact<{ [key: string]: never; }>
 
 
 export type GetUserCultivationsQuery = { __typename?: 'Query', getUserCultivations: Array<{ __typename?: 'Cultivation', id: string, plantName: string, variety?: string | null | undefined, growthStage: GrowthStage, plantedDate: string, expectedHarvestDate?: string | null | undefined, notes?: string | null | undefined, createdAt: string, updatedAt: string, garden: { __typename?: 'Garden', id: string, name: string } }> };
+
+export type GetUserSensorsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetUserSensorsQuery = { __typename?: 'Query', getUserSensors: Array<{ __typename?: 'Sensor', id: string, deviceId: string, name: string, type: SensorType, unit: string, locationLevel: SensorLocationLevel, isActive: boolean, mqttTopic: string, connectionToken: string, lastDataReceived?: string | null | undefined, createdAt: string, updatedAt: string, calibration?: { __typename?: 'SensorCalibration', offset?: number | null | undefined, multiplier?: number | null | undefined, lastCalibrated?: string | null | undefined } | null | undefined, thresholds?: { __typename?: 'SensorThresholds', min?: number | null | undefined, max?: number | null | undefined, optimal_min?: number | null | undefined, optimal_max?: number | null | undefined } | null | undefined, garden?: { __typename?: 'Garden', id: string, name: string } | null | undefined, cultivation?: { __typename?: 'Cultivation', id: string, plantName: string } | null | undefined }> };
+
+export type GetSensorQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetSensorQuery = { __typename?: 'Query', getSensor: { __typename?: 'Sensor', id: string, deviceId: string, name: string, type: SensorType, unit: string, locationLevel: SensorLocationLevel, isActive: boolean, mqttTopic: string, connectionToken: string, lastDataReceived?: string | null | undefined, createdAt: string, updatedAt: string, calibration?: { __typename?: 'SensorCalibration', offset?: number | null | undefined, multiplier?: number | null | undefined, lastCalibrated?: string | null | undefined } | null | undefined, thresholds?: { __typename?: 'SensorThresholds', min?: number | null | undefined, max?: number | null | undefined, optimal_min?: number | null | undefined, optimal_max?: number | null | undefined } | null | undefined, garden?: { __typename?: 'Garden', id: string, name: string, user: { __typename?: 'User', id: string } } | null | undefined, cultivation?: { __typename?: 'Cultivation', id: string, plantName: string, garden: { __typename?: 'Garden', id: string, name: string, user: { __typename?: 'User', id: string } } } | null | undefined } };
+
+export type GetMqttConnectionInfoQueryVariables = Exact<{
+  sensorId: Scalars['ID']['input'];
+}>;
+
+
+export type GetMqttConnectionInfoQuery = { __typename?: 'Query', getMqttConnectionInfo: { __typename?: 'MqttConnectionInfo', host: string, port: number, wsPort: number, dataTopicPublish: string, commandTopicSubscribe: string, statusTopicPublish: string, token: string, keepalive: number, clientIdPrefix: string } };
+
+export type GetSensorDataQueryVariables = Exact<{
+  sensorId: Scalars['ID']['input'];
+  query: SensorDataQueryInput;
+}>;
+
+
+export type GetSensorDataQuery = { __typename?: 'Query', getSensorData: Array<{ __typename?: 'SensorDataPoint', time: string, value: number, sensorId: string, userId: string }> };
+
+export type GetLatestSensorValueQueryVariables = Exact<{
+  sensorId: Scalars['ID']['input'];
+}>;
+
+
+export type GetLatestSensorValueQuery = { __typename?: 'Query', getLatestSensorValue?: { __typename?: 'SensorDataPoint', time: string, value: number, sensorId: string, userId: string } | null | undefined };
+
+export type GetAllGardenSensorsQueryVariables = Exact<{
+  gardenId: Scalars['ID']['input'];
+}>;
+
+
+export type GetAllGardenSensorsQuery = { __typename?: 'Query', getGardenSensors: Array<{ __typename?: 'Sensor', id: string, deviceId: string, name: string, type: SensorType, unit: string, locationLevel: SensorLocationLevel, isActive: boolean, mqttTopic: string, lastDataReceived?: string | null | undefined, garden?: { __typename?: 'Garden', id: string, name: string } | null | undefined, cultivation?: { __typename?: 'Cultivation', id: string, plantName: string } | null | undefined }> };
+
+export type GetCultivationSensorsQueryVariables = Exact<{
+  cultivationId: Scalars['ID']['input'];
+}>;
+
+
+export type GetCultivationSensorsQuery = { __typename?: 'Query', getCultivationSensors: Array<{ __typename?: 'Sensor', id: string, deviceId: string, name: string, type: SensorType, unit: string, locationLevel: SensorLocationLevel, isActive: boolean, mqttTopic: string, lastDataReceived?: string | null | undefined, cultivation?: { __typename?: 'Cultivation', id: string, plantName: string, garden: { __typename?: 'Garden', id: string, name: string } } | null | undefined }> };
 
 
 export const LoginUserDocument = gql`
@@ -1043,6 +1177,165 @@ export function useDeleteSensorMutation(baseOptions?: Apollo.MutationHookOptions
 export type DeleteSensorMutationHookResult = ReturnType<typeof useDeleteSensorMutation>;
 export type DeleteSensorMutationResult = Apollo.MutationResult<DeleteSensorMutation>;
 export type DeleteSensorMutationOptions = Apollo.BaseMutationOptions<DeleteSensorMutation, DeleteSensorMutationVariables>;
+export const CreateNewSensorDocument = gql`
+    mutation CreateNewSensor($input: CreateSensorInput!) {
+  createSensor(input: $input) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    connectionToken
+    lastDataReceived
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateNewSensorMutationFn = Apollo.MutationFunction<CreateNewSensorMutation, CreateNewSensorMutationVariables>;
+
+/**
+ * __useCreateNewSensorMutation__
+ *
+ * To run a mutation, you first call `useCreateNewSensorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateNewSensorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createNewSensorMutation, { data, loading, error }] = useCreateNewSensorMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateNewSensorMutation(baseOptions?: Apollo.MutationHookOptions<CreateNewSensorMutation, CreateNewSensorMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateNewSensorMutation, CreateNewSensorMutationVariables>(CreateNewSensorDocument, options);
+      }
+export type CreateNewSensorMutationHookResult = ReturnType<typeof useCreateNewSensorMutation>;
+export type CreateNewSensorMutationResult = Apollo.MutationResult<CreateNewSensorMutation>;
+export type CreateNewSensorMutationOptions = Apollo.BaseMutationOptions<CreateNewSensorMutation, CreateNewSensorMutationVariables>;
+export const UpdateExistingSensorDocument = gql`
+    mutation UpdateExistingSensor($id: ID!, $input: UpdateSensorInput!) {
+  updateSensor(id: $id, input: $input) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    connectionToken
+    lastDataReceived
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateExistingSensorMutationFn = Apollo.MutationFunction<UpdateExistingSensorMutation, UpdateExistingSensorMutationVariables>;
+
+/**
+ * __useUpdateExistingSensorMutation__
+ *
+ * To run a mutation, you first call `useUpdateExistingSensorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateExistingSensorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateExistingSensorMutation, { data, loading, error }] = useUpdateExistingSensorMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateExistingSensorMutation(baseOptions?: Apollo.MutationHookOptions<UpdateExistingSensorMutation, UpdateExistingSensorMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateExistingSensorMutation, UpdateExistingSensorMutationVariables>(UpdateExistingSensorDocument, options);
+      }
+export type UpdateExistingSensorMutationHookResult = ReturnType<typeof useUpdateExistingSensorMutation>;
+export type UpdateExistingSensorMutationResult = Apollo.MutationResult<UpdateExistingSensorMutation>;
+export type UpdateExistingSensorMutationOptions = Apollo.BaseMutationOptions<UpdateExistingSensorMutation, UpdateExistingSensorMutationVariables>;
+export const SendSensorCommandDocument = gql`
+    mutation SendSensorCommand($sensorId: ID!, $input: SendCommandInput!) {
+  sendSensorCommand(sensorId: $sensorId, input: $input)
+}
+    `;
+export type SendSensorCommandMutationFn = Apollo.MutationFunction<SendSensorCommandMutation, SendSensorCommandMutationVariables>;
+
+/**
+ * __useSendSensorCommandMutation__
+ *
+ * To run a mutation, you first call `useSendSensorCommandMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendSensorCommandMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendSensorCommandMutation, { data, loading, error }] = useSendSensorCommandMutation({
+ *   variables: {
+ *      sensorId: // value for 'sensorId'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSendSensorCommandMutation(baseOptions?: Apollo.MutationHookOptions<SendSensorCommandMutation, SendSensorCommandMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SendSensorCommandMutation, SendSensorCommandMutationVariables>(SendSensorCommandDocument, options);
+      }
+export type SendSensorCommandMutationHookResult = ReturnType<typeof useSendSensorCommandMutation>;
+export type SendSensorCommandMutationResult = Apollo.MutationResult<SendSensorCommandMutation>;
+export type SendSensorCommandMutationOptions = Apollo.BaseMutationOptions<SendSensorCommandMutation, SendSensorCommandMutationVariables>;
 export const MeDocument = gql`
     query Me {
   me {
@@ -1427,3 +1720,399 @@ export type GetUserCultivationsQueryHookResult = ReturnType<typeof useGetUserCul
 export type GetUserCultivationsLazyQueryHookResult = ReturnType<typeof useGetUserCultivationsLazyQuery>;
 export type GetUserCultivationsSuspenseQueryHookResult = ReturnType<typeof useGetUserCultivationsSuspenseQuery>;
 export type GetUserCultivationsQueryResult = Apollo.QueryResult<GetUserCultivationsQuery, GetUserCultivationsQueryVariables>;
+export const GetUserSensorsDocument = gql`
+    query GetUserSensors {
+  getUserSensors {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    connectionToken
+    lastDataReceived
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetUserSensorsQuery__
+ *
+ * To run a query within a React component, call `useGetUserSensorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserSensorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserSensorsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetUserSensorsQuery(baseOptions?: Apollo.QueryHookOptions<GetUserSensorsQuery, GetUserSensorsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserSensorsQuery, GetUserSensorsQueryVariables>(GetUserSensorsDocument, options);
+      }
+export function useGetUserSensorsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserSensorsQuery, GetUserSensorsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserSensorsQuery, GetUserSensorsQueryVariables>(GetUserSensorsDocument, options);
+        }
+export function useGetUserSensorsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserSensorsQuery, GetUserSensorsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUserSensorsQuery, GetUserSensorsQueryVariables>(GetUserSensorsDocument, options);
+        }
+export type GetUserSensorsQueryHookResult = ReturnType<typeof useGetUserSensorsQuery>;
+export type GetUserSensorsLazyQueryHookResult = ReturnType<typeof useGetUserSensorsLazyQuery>;
+export type GetUserSensorsSuspenseQueryHookResult = ReturnType<typeof useGetUserSensorsSuspenseQuery>;
+export type GetUserSensorsQueryResult = Apollo.QueryResult<GetUserSensorsQuery, GetUserSensorsQueryVariables>;
+export const GetSensorDocument = gql`
+    query GetSensor($id: ID!) {
+  getSensor(id: $id) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    connectionToken
+    lastDataReceived
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    garden {
+      id
+      name
+      user {
+        id
+      }
+    }
+    cultivation {
+      id
+      plantName
+      garden {
+        id
+        name
+        user {
+          id
+        }
+      }
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetSensorQuery__
+ *
+ * To run a query within a React component, call `useGetSensorQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSensorQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSensorQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetSensorQuery(baseOptions: Apollo.QueryHookOptions<GetSensorQuery, GetSensorQueryVariables> & ({ variables: GetSensorQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSensorQuery, GetSensorQueryVariables>(GetSensorDocument, options);
+      }
+export function useGetSensorLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSensorQuery, GetSensorQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSensorQuery, GetSensorQueryVariables>(GetSensorDocument, options);
+        }
+export function useGetSensorSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSensorQuery, GetSensorQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSensorQuery, GetSensorQueryVariables>(GetSensorDocument, options);
+        }
+export type GetSensorQueryHookResult = ReturnType<typeof useGetSensorQuery>;
+export type GetSensorLazyQueryHookResult = ReturnType<typeof useGetSensorLazyQuery>;
+export type GetSensorSuspenseQueryHookResult = ReturnType<typeof useGetSensorSuspenseQuery>;
+export type GetSensorQueryResult = Apollo.QueryResult<GetSensorQuery, GetSensorQueryVariables>;
+export const GetMqttConnectionInfoDocument = gql`
+    query GetMqttConnectionInfo($sensorId: ID!) {
+  getMqttConnectionInfo(sensorId: $sensorId) {
+    host
+    port
+    wsPort
+    dataTopicPublish
+    commandTopicSubscribe
+    statusTopicPublish
+    token
+    keepalive
+    clientIdPrefix
+  }
+}
+    `;
+
+/**
+ * __useGetMqttConnectionInfoQuery__
+ *
+ * To run a query within a React component, call `useGetMqttConnectionInfoQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMqttConnectionInfoQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMqttConnectionInfoQuery({
+ *   variables: {
+ *      sensorId: // value for 'sensorId'
+ *   },
+ * });
+ */
+export function useGetMqttConnectionInfoQuery(baseOptions: Apollo.QueryHookOptions<GetMqttConnectionInfoQuery, GetMqttConnectionInfoQueryVariables> & ({ variables: GetMqttConnectionInfoQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetMqttConnectionInfoQuery, GetMqttConnectionInfoQueryVariables>(GetMqttConnectionInfoDocument, options);
+      }
+export function useGetMqttConnectionInfoLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetMqttConnectionInfoQuery, GetMqttConnectionInfoQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetMqttConnectionInfoQuery, GetMqttConnectionInfoQueryVariables>(GetMqttConnectionInfoDocument, options);
+        }
+export function useGetMqttConnectionInfoSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMqttConnectionInfoQuery, GetMqttConnectionInfoQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetMqttConnectionInfoQuery, GetMqttConnectionInfoQueryVariables>(GetMqttConnectionInfoDocument, options);
+        }
+export type GetMqttConnectionInfoQueryHookResult = ReturnType<typeof useGetMqttConnectionInfoQuery>;
+export type GetMqttConnectionInfoLazyQueryHookResult = ReturnType<typeof useGetMqttConnectionInfoLazyQuery>;
+export type GetMqttConnectionInfoSuspenseQueryHookResult = ReturnType<typeof useGetMqttConnectionInfoSuspenseQuery>;
+export type GetMqttConnectionInfoQueryResult = Apollo.QueryResult<GetMqttConnectionInfoQuery, GetMqttConnectionInfoQueryVariables>;
+export const GetSensorDataDocument = gql`
+    query GetSensorData($sensorId: ID!, $query: SensorDataQueryInput!) {
+  getSensorData(sensorId: $sensorId, query: $query) {
+    time
+    value
+    sensorId
+    userId
+  }
+}
+    `;
+
+/**
+ * __useGetSensorDataQuery__
+ *
+ * To run a query within a React component, call `useGetSensorDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSensorDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSensorDataQuery({
+ *   variables: {
+ *      sensorId: // value for 'sensorId'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetSensorDataQuery(baseOptions: Apollo.QueryHookOptions<GetSensorDataQuery, GetSensorDataQueryVariables> & ({ variables: GetSensorDataQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSensorDataQuery, GetSensorDataQueryVariables>(GetSensorDataDocument, options);
+      }
+export function useGetSensorDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSensorDataQuery, GetSensorDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSensorDataQuery, GetSensorDataQueryVariables>(GetSensorDataDocument, options);
+        }
+export function useGetSensorDataSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetSensorDataQuery, GetSensorDataQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetSensorDataQuery, GetSensorDataQueryVariables>(GetSensorDataDocument, options);
+        }
+export type GetSensorDataQueryHookResult = ReturnType<typeof useGetSensorDataQuery>;
+export type GetSensorDataLazyQueryHookResult = ReturnType<typeof useGetSensorDataLazyQuery>;
+export type GetSensorDataSuspenseQueryHookResult = ReturnType<typeof useGetSensorDataSuspenseQuery>;
+export type GetSensorDataQueryResult = Apollo.QueryResult<GetSensorDataQuery, GetSensorDataQueryVariables>;
+export const GetLatestSensorValueDocument = gql`
+    query GetLatestSensorValue($sensorId: ID!) {
+  getLatestSensorValue(sensorId: $sensorId) {
+    time
+    value
+    sensorId
+    userId
+  }
+}
+    `;
+
+/**
+ * __useGetLatestSensorValueQuery__
+ *
+ * To run a query within a React component, call `useGetLatestSensorValueQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLatestSensorValueQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLatestSensorValueQuery({
+ *   variables: {
+ *      sensorId: // value for 'sensorId'
+ *   },
+ * });
+ */
+export function useGetLatestSensorValueQuery(baseOptions: Apollo.QueryHookOptions<GetLatestSensorValueQuery, GetLatestSensorValueQueryVariables> & ({ variables: GetLatestSensorValueQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLatestSensorValueQuery, GetLatestSensorValueQueryVariables>(GetLatestSensorValueDocument, options);
+      }
+export function useGetLatestSensorValueLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLatestSensorValueQuery, GetLatestSensorValueQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLatestSensorValueQuery, GetLatestSensorValueQueryVariables>(GetLatestSensorValueDocument, options);
+        }
+export function useGetLatestSensorValueSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetLatestSensorValueQuery, GetLatestSensorValueQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetLatestSensorValueQuery, GetLatestSensorValueQueryVariables>(GetLatestSensorValueDocument, options);
+        }
+export type GetLatestSensorValueQueryHookResult = ReturnType<typeof useGetLatestSensorValueQuery>;
+export type GetLatestSensorValueLazyQueryHookResult = ReturnType<typeof useGetLatestSensorValueLazyQuery>;
+export type GetLatestSensorValueSuspenseQueryHookResult = ReturnType<typeof useGetLatestSensorValueSuspenseQuery>;
+export type GetLatestSensorValueQueryResult = Apollo.QueryResult<GetLatestSensorValueQuery, GetLatestSensorValueQueryVariables>;
+export const GetAllGardenSensorsDocument = gql`
+    query GetAllGardenSensors($gardenId: ID!) {
+  getGardenSensors(gardenId: $gardenId) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    lastDataReceived
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAllGardenSensorsQuery__
+ *
+ * To run a query within a React component, call `useGetAllGardenSensorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllGardenSensorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllGardenSensorsQuery({
+ *   variables: {
+ *      gardenId: // value for 'gardenId'
+ *   },
+ * });
+ */
+export function useGetAllGardenSensorsQuery(baseOptions: Apollo.QueryHookOptions<GetAllGardenSensorsQuery, GetAllGardenSensorsQueryVariables> & ({ variables: GetAllGardenSensorsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllGardenSensorsQuery, GetAllGardenSensorsQueryVariables>(GetAllGardenSensorsDocument, options);
+      }
+export function useGetAllGardenSensorsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllGardenSensorsQuery, GetAllGardenSensorsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllGardenSensorsQuery, GetAllGardenSensorsQueryVariables>(GetAllGardenSensorsDocument, options);
+        }
+export function useGetAllGardenSensorsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAllGardenSensorsQuery, GetAllGardenSensorsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAllGardenSensorsQuery, GetAllGardenSensorsQueryVariables>(GetAllGardenSensorsDocument, options);
+        }
+export type GetAllGardenSensorsQueryHookResult = ReturnType<typeof useGetAllGardenSensorsQuery>;
+export type GetAllGardenSensorsLazyQueryHookResult = ReturnType<typeof useGetAllGardenSensorsLazyQuery>;
+export type GetAllGardenSensorsSuspenseQueryHookResult = ReturnType<typeof useGetAllGardenSensorsSuspenseQuery>;
+export type GetAllGardenSensorsQueryResult = Apollo.QueryResult<GetAllGardenSensorsQuery, GetAllGardenSensorsQueryVariables>;
+export const GetCultivationSensorsDocument = gql`
+    query GetCultivationSensors($cultivationId: ID!) {
+  getCultivationSensors(cultivationId: $cultivationId) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    lastDataReceived
+    cultivation {
+      id
+      plantName
+      garden {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCultivationSensorsQuery__
+ *
+ * To run a query within a React component, call `useGetCultivationSensorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCultivationSensorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCultivationSensorsQuery({
+ *   variables: {
+ *      cultivationId: // value for 'cultivationId'
+ *   },
+ * });
+ */
+export function useGetCultivationSensorsQuery(baseOptions: Apollo.QueryHookOptions<GetCultivationSensorsQuery, GetCultivationSensorsQueryVariables> & ({ variables: GetCultivationSensorsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCultivationSensorsQuery, GetCultivationSensorsQueryVariables>(GetCultivationSensorsDocument, options);
+      }
+export function useGetCultivationSensorsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCultivationSensorsQuery, GetCultivationSensorsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCultivationSensorsQuery, GetCultivationSensorsQueryVariables>(GetCultivationSensorsDocument, options);
+        }
+export function useGetCultivationSensorsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCultivationSensorsQuery, GetCultivationSensorsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCultivationSensorsQuery, GetCultivationSensorsQueryVariables>(GetCultivationSensorsDocument, options);
+        }
+export type GetCultivationSensorsQueryHookResult = ReturnType<typeof useGetCultivationSensorsQuery>;
+export type GetCultivationSensorsLazyQueryHookResult = ReturnType<typeof useGetCultivationSensorsLazyQuery>;
+export type GetCultivationSensorsSuspenseQueryHookResult = ReturnType<typeof useGetCultivationSensorsSuspenseQuery>;
+export type GetCultivationSensorsQueryResult = Apollo.QueryResult<GetCultivationSensorsQuery, GetCultivationSensorsQueryVariables>;

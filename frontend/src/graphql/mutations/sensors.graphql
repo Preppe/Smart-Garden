@@ -1,0 +1,79 @@
+mutation CreateNewSensor($input: CreateSensorInput!) {
+  createSensor(input: $input) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    connectionToken
+    lastDataReceived
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateExistingSensor($id: ID!, $input: UpdateSensorInput!) {
+  updateSensor(id: $id, input: $input) {
+    id
+    deviceId
+    name
+    type
+    unit
+    locationLevel
+    isActive
+    mqttTopic
+    connectionToken
+    lastDataReceived
+    calibration {
+      offset
+      multiplier
+      lastCalibrated
+    }
+    thresholds {
+      min
+      max
+      optimal_min
+      optimal_max
+    }
+    garden {
+      id
+      name
+    }
+    cultivation {
+      id
+      plantName
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation DeleteSensor($id: ID!) {
+  deleteSensor(id: $id)
+}
+
+mutation SendSensorCommand($sensorId: ID!, $input: SendCommandInput!) {
+  sendSensorCommand(sensorId: $sensorId, input: $input)
+}

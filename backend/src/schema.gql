@@ -107,9 +107,26 @@ enum GrowthStage {
   VEGETATIVE
 }
 
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
 input LoginInput {
   email: String!
   password: String!
+}
+
+type MqttConnectionInfo {
+  clientIdPrefix: String!
+  commandTopicSubscribe: String!
+  dataTopicPublish: String!
+  host: String!
+  keepalive: Int!
+  port: Int!
+  statusTopicPublish: String!
+  token: String!
+  wsPort: Int!
 }
 
 type Mutation {
@@ -124,6 +141,7 @@ type Mutation {
   logout: Boolean!
   register(registerInput: RegisterInput!): AuthResponse!
   removeUser(id: String!): Boolean!
+  sendSensorCommand(input: SendCommandInput!, sensorId: ID!): Boolean!
   updateCultivation(id: ID!, input: UpdateCultivationInput!): Cultivation!
   updateGarden(id: ID!, input: UpdateGardenInput!): Garden!
   updateProfile(updateProfileInput: UpdateProfileInput!): User!
@@ -136,7 +154,10 @@ type Query {
   getCultivationSensors(cultivationId: ID!): [Sensor!]!
   getGarden(id: ID!): Garden!
   getGardenSensors(gardenId: ID!): [Sensor!]!
+  getLatestSensorValue(sensorId: ID!): SensorDataPoint
+  getMqttConnectionInfo(sensorId: ID!): MqttConnectionInfo!
   getSensor(id: ID!): Sensor!
+  getSensorData(query: SensorDataQueryInput!, sensorId: ID!): [SensorDataPoint!]!
   getUserCultivations: [Cultivation!]!
   getUserGardens: [Garden!]!
   getUserSensors: [Sensor!]!
@@ -152,15 +173,23 @@ input RegisterInput {
   password: String!
 }
 
+input SendCommandInput {
+  command: String!
+  parameters: JSONObject
+}
+
 type Sensor {
   calibration: SensorCalibration
+  connectionToken: String!
   createdAt: DateTime!
   cultivation: Cultivation
   deviceId: String!
   garden: Garden
   id: ID!
   isActive: Boolean!
+  lastDataReceived: DateTime
   locationLevel: SensorLocationLevel!
+  mqttTopic: String!
   name: String!
   thresholds: SensorThresholds
   type: SensorType!
@@ -178,6 +207,19 @@ input SensorCalibrationInput {
   lastCalibrated: DateTime
   multiplier: Float
   offset: Float
+}
+
+type SensorDataPoint {
+  sensorId: String!
+  time: String!
+  userId: String!
+  value: Float!
+}
+
+input SensorDataQueryInput {
+  aggregateWindow: String
+  start: String!
+  stop: String
 }
 
 """Level where the sensor is installed"""
