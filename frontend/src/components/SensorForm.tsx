@@ -29,6 +29,24 @@ const sensorFormSchema = z.object({
   thresholdMax: z.number().optional(),
   thresholdOptimalMin: z.number().optional(),
   thresholdOptimalMax: z.number().optional(),
+}).refine((data) => {
+  // Validate that gardenId is provided when locationLevel is GARDEN
+  if (data.locationLevel === 'GARDEN') {
+    return data.gardenId && data.gardenId.trim().length > 0;
+  }
+  return true;
+}, {
+  message: 'Giardino è obbligatorio quando il livello è "Giardino"',
+  path: ['gardenId'],
+}).refine((data) => {
+  // Validate that cultivationId is provided when locationLevel is CULTIVATION
+  if (data.locationLevel === 'CULTIVATION') {
+    return data.cultivationId && data.cultivationId.trim().length > 0;
+  }
+  return true;
+}, {
+  message: 'Coltivazione è obbligatoria quando il livello è "Coltivazione"',
+  path: ['cultivationId'],
 });
 
 type SensorFormData = z.infer<typeof sensorFormSchema>;
@@ -107,6 +125,16 @@ const SensorForm: React.FC<SensorFormProps> = ({
     }
   }, [selectedType, form]);
 
+  // Reset location fields when location level changes
+  React.useEffect(() => {
+    if (locationLevel === 'GARDEN') {
+      form.setValue('cultivationId', '');
+    } else if (locationLevel === 'CULTIVATION') {
+      // Keep garden selection but ensure cultivation is cleared initially
+      form.setValue('cultivationId', '');
+    }
+  }, [locationLevel, form]);
+
   // Filter cultivations based on selected garden
   const filteredCultivations = cultivations.filter(
     cultivation => cultivation.garden.id === selectedGardenId
@@ -142,19 +170,16 @@ const SensorForm: React.FC<SensorFormProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {mode === 'create' ? 'Nuovo Sensore' : 'Modifica Sensore'}
-          </CardTitle>
-          <CardDescription>
-            {mode === 'create' 
-              ? 'Configura un nuovo sensore per il monitoraggio IoT'
-              : 'Modifica la configurazione del sensore'
-            }
-          </CardDescription>
-        </CardHeader>
+    <Card className="border-emerald-200 bg-white/70 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="text-emerald-800">Informazioni Sensore</CardTitle>
+        <CardDescription>
+          {mode === 'create' 
+            ? 'Configura un nuovo sensore per il monitoraggio IoT'
+            : 'Modifica la configurazione del sensore'
+          }
+        </CardDescription>
+      </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -272,7 +297,9 @@ const SensorForm: React.FC<SensorFormProps> = ({
                   name="gardenId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Giardino</FormLabel>
+                      <FormLabel>
+                        Giardino{locationLevel === 'GARDEN' && ' *'}
+                      </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -298,7 +325,7 @@ const SensorForm: React.FC<SensorFormProps> = ({
                     name="cultivationId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Coltivazione</FormLabel>
+                        <FormLabel>Coltivazione *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -495,8 +522,7 @@ const SensorForm: React.FC<SensorFormProps> = ({
             </form>
           </Form>
         </CardContent>
-      </Card>
-    </div>
+    </Card>
   );
 };
 

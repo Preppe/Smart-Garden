@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
+import { BackButton } from '@/components/ui/back-button';
 import { toast } from '@/hooks/use-toast';
 import SensorForm from '@/components/SensorForm';
 import { 
@@ -108,30 +109,34 @@ const SensorFormPage: React.FC = () => {
     navigate('/sensors');
   };
 
+  // Check if user has gardens
+  if (gardens.length === 0 && !gardensLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+        <div className="flex items-center justify-between mb-6">
+          <BackButton onClick={() => navigate('/sensors')}>Torna ai sensori</BackButton>
+          <div></div>
+        </div>
+
+        <Card className="border-emerald-200 bg-white/70 backdrop-blur-sm">
+          <CardContent className="text-center py-12">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Nessun giardino disponibile</h3>
+            <p className="text-gray-600 mb-4">Devi creare almeno un giardino prima di aggiungere sensori.</p>
+            <Button onClick={() => navigate('/gardens/new')}>Crea il tuo primo giardino</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Loading state
   if (isEditMode && sensorLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/sensors')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Torna ai Sensori
-          </Button>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-700 font-medium">Caricamento...</p>
         </div>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="h-6 bg-muted rounded w-1/3 animate-pulse"></div>
-              <div className="h-4 bg-muted rounded w-2/3 animate-pulse"></div>
-              <div className="space-y-2">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="h-10 bg-muted rounded animate-pulse"></div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -139,56 +144,23 @@ const SensorFormPage: React.FC = () => {
   // Error state
   if (isEditMode && sensorError) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/sensors')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Torna ai Sensori
-          </Button>
+      <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+        <div className="flex items-center justify-between mb-6">
+          <BackButton onClick={() => navigate('/sensors')}>Torna ai sensori</BackButton>
+          <div></div>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Errore nel caricamento</h3>
-              <p className="text-muted-foreground mb-4">
-                Impossibile caricare i dati del sensore
-              </p>
-              <div className="space-x-2">
-                <Button variant="outline" onClick={() => window.location.reload()}>
-                  Riprova
-                </Button>
-                <Button onClick={() => navigate('/sensors')}>
-                  Torna ai Sensori
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Not found state (for edit mode)
-  if (isEditMode && !sensorLoading && !sensor) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/sensors')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Torna ai Sensori
-          </Button>
-        </div>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Sensore non trovato</h3>
-              <p className="text-muted-foreground mb-4">
-                Il sensore che stai cercando di modificare non esiste o non hai i permessi per accedervi
-              </p>
+        <Card className="border-emerald-200 bg-white/70 backdrop-blur-sm">
+          <CardContent className="text-center py-12">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Errore nel caricamento</h3>
+            <p className="text-gray-600 mb-4">
+              Impossibile caricare i dati del sensore
+            </p>
+            <div className="space-x-2">
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                Riprova
+              </Button>
               <Button onClick={() => navigate('/sensors')}>
                 Torna ai Sensori
               </Button>
@@ -199,25 +171,37 @@ const SensorFormPage: React.FC = () => {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/sensors')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Torna ai Sensori
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {isEditMode ? 'Modifica Sensore' : 'Nuovo Sensore'}
-          </h1>
-          <p className="text-muted-foreground">
-            {isEditMode 
-              ? `Modifica la configurazione del sensore ${sensor?.name}`
-              : 'Configura un nuovo sensore per il monitoraggio IoT'
-            }
-          </p>
+  // Not found state (for edit mode)
+  if (isEditMode && !sensorLoading && !sensor) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+        <div className="flex items-center justify-between mb-6">
+          <BackButton onClick={() => navigate('/sensors')}>Torna ai sensori</BackButton>
+          <div></div>
         </div>
+
+        <Card className="border-emerald-200 bg-white/70 backdrop-blur-sm">
+          <CardContent className="text-center py-12">
+            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Sensore non trovato</h3>
+            <p className="text-gray-600 mb-4">
+              Il sensore che stai cercando di modificare non esiste o non hai i permessi per accedervi
+            </p>
+            <Button onClick={() => navigate('/sensors')}>
+              Torna ai Sensori
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+      {/* Header Actions */}
+      <div className="flex items-center justify-between mb-6">
+        <BackButton onClick={() => navigate('/sensors')}>Torna ai sensori</BackButton>
+        <div></div>
       </div>
 
       {/* Form */}
@@ -233,10 +217,10 @@ const SensorFormPage: React.FC = () => {
 
       {/* Additional info for edit mode */}
       {isEditMode && sensor && (
-        <Card>
+        <Card className="border-emerald-200 bg-white/70 backdrop-blur-sm">
           <CardContent className="pt-6">
             <div className="space-y-4">
-              <h3 className="font-medium">Informazioni Sensore</h3>
+              <h3 className="font-medium text-emerald-800">Informazioni Sensore</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
                   <span className="font-medium">ID:</span>
