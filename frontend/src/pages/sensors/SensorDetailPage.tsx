@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,48 +44,49 @@ const SensorDetailPage: React.FC = () => {
     skip: !id,
   });
 
-  // Build query for historical data
-  const buildDataQuery = (range: string): SensorDataQueryInput => {
-    const now = new Date();
+  // Build query for historical data - memoized to prevent infinite loops
+  const [queryTimestamp, setQueryTimestamp] = useState(() => new Date());
+  
+  const dataQuery = useMemo((): SensorDataQueryInput => {
     let start: Date;
     let aggregateWindow: string | undefined;
 
-    switch (range) {
+    switch (timeRange) {
       case '1h':
-        start = new Date(now.getTime() - 60 * 60 * 1000);
+        start = new Date(queryTimestamp.getTime() - 60 * 60 * 1000);
         break;
       case '6h':
-        start = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+        start = new Date(queryTimestamp.getTime() - 6 * 60 * 60 * 1000);
         aggregateWindow = '5m';
         break;
       case '24h':
-        start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        start = new Date(queryTimestamp.getTime() - 24 * 60 * 60 * 1000);
         aggregateWindow = '15m';
         break;
       case '7d':
-        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        start = new Date(queryTimestamp.getTime() - 7 * 24 * 60 * 60 * 1000);
         aggregateWindow = '1h';
         break;
       case '30d':
-        start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        start = new Date(queryTimestamp.getTime() - 30 * 24 * 60 * 60 * 1000);
         aggregateWindow = '6h';
         break;
       default:
-        start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        start = new Date(queryTimestamp.getTime() - 24 * 60 * 60 * 1000);
         aggregateWindow = '15m';
     }
 
     return {
       start: start.toISOString(),
-      stop: now.toISOString(),
+      stop: queryTimestamp.toISOString(),
       aggregateWindow,
     };
-  };
+  }, [timeRange, queryTimestamp]);
 
   const { data: chartData, loading: chartLoading, refetch: refetchChart } = useGetSensorDataQuery({
     variables: { 
       sensorId: id!, 
-      query: buildDataQuery(timeRange) 
+      query: dataQuery
     },
     skip: !id,
   });
@@ -124,7 +125,7 @@ const SensorDetailPage: React.FC = () => {
 
   const handleTimeRangeChange = (newRange: string) => {
     setTimeRange(newRange);
-    // The query will automatically refetch due to the reactive variables
+    setQueryTimestamp(new Date()); // Update timestamp to refetch data
   };
 
   const handleDeleteSensor = async () => {
@@ -241,7 +242,11 @@ const SensorDetailPage: React.FC = () => {
           }}
           isDeleting={deleteLoading}
           additionalActions={
-            <Button variant="outline" onClick={() => refetchSensor()}>
+            <Button variant="outline" onClick={() => {
+              refetchSensor();
+              refetchLatest();
+              setQueryTimestamp(new Date()); // This will trigger chart data refetch
+            }}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Aggiorna
             </Button>
