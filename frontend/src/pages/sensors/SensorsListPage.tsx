@@ -94,8 +94,6 @@ const SensorsListPage: React.FC = () => {
     <SensorCard
       key={sensor.id}
       sensor={sensor}
-      onEdit={(id) => navigate(`/sensors/${id}/edit`)}
-      onViewDetails={(id) => navigate(`/sensors/${id}`)}
       onDelete={() => handleDeleteSensor(sensor.id)}
     />
   );

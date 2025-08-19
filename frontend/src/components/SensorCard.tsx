@@ -2,8 +2,19 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Trash2, Edit, Eye, Activity, AlertTriangle, CheckCircle, Clock, Thermometer, Droplets, Sun, TestTube } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { GetUserSensorsQuery } from '@/graphql/generated/types';
 import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -12,9 +23,7 @@ type Sensor = GetUserSensorsQuery['getUserSensors'][0];
 
 interface SensorCardProps {
   sensor: Sensor;
-  onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
-  onViewDetails?: (id: string) => void;
 }
 
 const getSensorIcon = (type: string) => {
@@ -93,32 +102,14 @@ const getConnectionStatus = (lastDataReceived?: string | null) => {
 
 const SensorCard: React.FC<SensorCardProps> = ({ 
   sensor, 
-  onEdit, 
-  onDelete, 
-  onViewDetails 
+  onDelete
 }) => {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const connectionStatus = getConnectionStatus(sensor.lastDataReceived);
   const sensorIcon = getSensorIcon(sensor.type);
   const typeLabel = getSensorTypeLabel(sensor.type);
 
-  const handleViewDetails = () => {
-    if (onViewDetails) {
-      onViewDetails(sensor.id);
-    } else {
-      navigate(`/sensors/${sensor.id}`);
-    }
-  };
-
-  const handleEdit = () => {
-    if (onEdit) {
-      onEdit(sensor.id);
-    } else {
-      navigate(`/sensors/${sensor.id}/edit`);
-    }
-  };
 
   const handleDelete = async () => {
     if (onDelete) {
@@ -190,19 +181,44 @@ const SensorCard: React.FC<SensorCardProps> = ({
         </div>
 
         <div className="flex space-x-2 pt-1">
-          <Button variant="outline" size="sm" onClick={handleViewDetails} className="flex-1">
-            <Eye className="mr-1 h-3 w-3" />
-            Dettagli
-          </Button>
+          <Link to={`/sensors/${sensor.id}`} className="flex-1">
+            <Button variant="outline" size="sm" className="w-full text-blue-600 hover:bg-blue-50 hover:border-blue-300">
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
 
-          <Button variant="outline" size="sm" onClick={handleEdit} className="flex-1">
-            <Edit className="mr-1 h-3 w-3" />
-            Modifica
-          </Button>
+          <Link to={`/sensors/${sensor.id}/edit`} className="flex-1">
+            <Button variant="outline" size="sm" className="w-full text-green-600 hover:bg-green-50 hover:border-green-300">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </Link>
 
-          <Button variant="outline" size="sm" onClick={handleDelete} disabled={isLoading} className="text-red-600 hover:text-red-700">
-            <Trash2 className="h-3 w-3" />
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" disabled={isLoading} className="text-red-600 hover:bg-red-50 hover:border-red-300">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Elimina Sensore</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Sei sicuro di voler eliminare il sensore "{sensor.name}"? 
+                  Questa azione non può essere annullata e tutti i dati storici 
+                  del sensore verranno persi.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annulla</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Elimina
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>

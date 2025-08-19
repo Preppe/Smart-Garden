@@ -1,5 +1,5 @@
 import { Trash2, Edit, Eye, Calendar, Sprout } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -136,20 +136,22 @@ const CultivationsListPage = () => {
         </div>
 
         <div className="flex space-x-2 pt-1">
-          <Button variant="outline" size="sm" onClick={() => navigate(`/cultivations/${cultivation.id}`)} className="flex-1">
-            <Eye className="mr-1 h-3 w-3" />
-            Dettagli
-          </Button>
+          <Link to={`/cultivations/${cultivation.id}`} className="flex-1">
+            <Button variant="outline" size="sm" className="w-full text-blue-600 hover:bg-blue-50 hover:border-blue-300">
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
 
-          <Button variant="outline" size="sm" onClick={() => navigate(`/cultivations/${cultivation.id}/edit`)} className="flex-1">
-            <Edit className="mr-1 h-3 w-3" />
-            Modifica
-          </Button>
+          <Link to={`/cultivations/${cultivation.id}/edit`} className="flex-1">
+            <Button variant="outline" size="sm" className="w-full text-green-600 hover:bg-green-50 hover:border-green-300">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </Link>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                <Trash2 className="h-3 w-3" />
+              <Button variant="outline" size="sm" className="text-red-600 hover:bg-red-50 hover:border-red-300">
+                <Trash2 className="h-4 w-4" />
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
