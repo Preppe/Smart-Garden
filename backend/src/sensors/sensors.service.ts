@@ -177,21 +177,39 @@ export class SensorsService {
   }
 
   async getSensorData(sensorId: string, userId: string, query: Omit<SensorDataQuery, 'sensorId' | 'userId'>) {
-    // Verify sensor ownership
-    await this.validateSensorOwnership(sensorId, userId);
-
-    return this.influxDbService.getSensorData({
-      ...query,
-      sensorId,
-      userId,
+    // Verify sensor ownership and get sensor details
+    const sensor = await this.sensorsRepository.findOne({
+      where: { id: sensorId, user: { id: userId } },
+      relations: { user: true },
     });
+
+    if (!sensor) {
+      throw new NotFoundException('Sensor not found');
+    }
+
+    // Use deviceId for InfluxDB query, not the UUID
+    const fullQuery = {
+      ...query,
+      sensorId: sensor.deviceId, // Use deviceId instead of UUID
+      userId,
+    };
+
+    return this.influxDbService.getSensorData(fullQuery);
   }
 
   async getLatestSensorValue(sensorId: string, userId: string) {
-    // Verify sensor ownership
-    await this.validateSensorOwnership(sensorId, userId);
+    // Verify sensor ownership and get sensor details
+    const sensor = await this.sensorsRepository.findOne({
+      where: { id: sensorId, user: { id: userId } },
+      relations: { user: true },
+    });
 
-    return this.influxDbService.getLatestSensorValue(sensorId, userId);
+    if (!sensor) {
+      throw new NotFoundException('Sensor not found');
+    }
+
+    // Use deviceId for InfluxDB query, not the UUID
+    return this.influxDbService.getLatestSensorValue(sensor.deviceId, userId);
   }
 
   async sendSensorCommand(sensorId: string, userId: string, command: string, parameters?: Record<string, any>) {
@@ -215,4 +233,5 @@ export class SensorsService {
       throw new NotFoundException('Sensor not found');
     }
   }
+
 }
