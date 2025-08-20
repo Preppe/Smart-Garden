@@ -1,9 +1,9 @@
-import { ObjectType, Field, Float } from '@nestjs/graphql';
+import { ObjectType, Field, Float, Int } from '@nestjs/graphql';
 
 @ObjectType()
 export class SensorDataPoint {
-  @Field()
-  time: string;
+  @Field(() => Int)
+  time: number;
 
   @Field(() => Float)
   value: number;

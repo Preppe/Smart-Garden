@@ -211,7 +211,7 @@ input SensorCalibrationInput {
 
 type SensorDataPoint {
   sensorId: String!
-  time: String!
+  time: Int!
   userId: String!
   value: Float!
 }

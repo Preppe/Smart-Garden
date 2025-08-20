@@ -13,7 +13,7 @@ export default registerAs(
 
     // Development settings
     synchronize: process.env.NODE_ENV === 'development',
-    logging: process.env.NODE_ENV === 'development' ? ['query', 'error'] : ['error'],
+    logging: process.env.NODE_ENV === 'development' ? ['error'] : ['error'],
 
     // Entity auto-loading (when entities are created)
     autoLoadEntities: true,

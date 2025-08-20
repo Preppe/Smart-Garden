@@ -8,7 +8,7 @@ export interface MqttSensorData {
   sensorId: string;
   userId: string;
   value: number;
-  timestamp?: string;
+  timestamp?: number;
   token: string;
 }
 
@@ -79,8 +79,8 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
   }
 
   private subscribeToSensorData() {
-    // Subscribe to all sensor data topics: orto/+/+/data
-    const dataTopicPattern = 'orto/+/+/data';
+    // Subscribe to all sensor data topics: smartgarden/+/+/data
+    const dataTopicPattern = 'smartgarden/+/+/data';
 
     this.client.subscribe(dataTopicPattern, { qos: 1 }, (error) => {
       if (error) {
@@ -91,7 +91,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     });
 
     // Subscribe to device status topics
-    const statusTopicPattern = 'orto/+/+/status';
+    const statusTopicPattern = 'smartgarden/+/+/status';
 
     this.client.subscribe(statusTopicPattern, { qos: 1 }, (error) => {
       if (error) {
@@ -107,9 +107,9 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       const messageStr = message.toString();
       this.logger.debug(`Received message on topic ${topic}: ${messageStr}`);
 
-      // Parse topic: orto/{userId}/{sensorId}/{type}
+      // Parse topic: smartgarden/{userId}/{sensorId}/{type}
       const topicParts = topic.split('/');
-      if (topicParts.length !== 4 || topicParts[0] !== 'orto') {
+      if (topicParts.length !== 4 || topicParts[0] !== 'smartgarden') {
         this.logger.warn(`Invalid topic format: ${topic}`);
         return;
       }
@@ -146,7 +146,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         sensorId,
         userId,
         value: data.value,
-        timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
+        timestamp: data.timestamp || Math.floor(Date.now() / 1000),
       });
 
       this.logger.debug(`Stored sensor data for ${sensorId}: ${data.value}`);
@@ -169,7 +169,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
 
   async sendCommand(userId: string, sensorId: string, command: MqttCommand): Promise<void> {
     try {
-      const topic = `orto/${userId}/${sensorId}/command`;
+      const topic = `smartgarden/${userId}/${sensorId}/command`;
       const message = JSON.stringify(command);
 
       return new Promise((resolve, reject) => {
@@ -190,7 +190,10 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
   }
 
   generateSensorTopic(userId: string, sensorId: string): string {
-    return `orto/${userId}/${sensorId}`;
+    if (!userId || !sensorId) {
+      throw new Error(`Invalid parameters: userId=${userId}, sensorId=${sensorId}`);
+    }
+    return `smartgarden/${userId}/${sensorId}`;
   }
 
   getMqttConnectionInfo(userId: string, sensorId: string, token: string) {
@@ -198,9 +201,9 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
       host: this.config.host,
       port: this.config.port,
       wsPort: this.config.wsPort,
-      dataTopicPublish: `orto/${userId}/${sensorId}/data`,
-      commandTopicSubscribe: `orto/${userId}/${sensorId}/command`,
-      statusTopicPublish: `orto/${userId}/${sensorId}/status`,
+      dataTopicPublish: `smartgarden/${userId}/${sensorId}/data`,
+      commandTopicSubscribe: `smartgarden/${userId}/${sensorId}/command`,
+      statusTopicPublish: `smartgarden/${userId}/${sensorId}/status`,
       token,
       keepalive: this.config.keepalive,
       clientIdPrefix: `sensor_${sensorId}_`,

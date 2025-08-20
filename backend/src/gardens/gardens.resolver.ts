@@ -17,7 +17,7 @@ export class GardensResolver {
 
   // Garden Queries
   @Query(() => [Garden], { name: 'getUserGardens' })
-  async getUserGardens(@CurrentUser('sub') userId: string): Promise<Garden[]> {
+  async getUserGardens(@CurrentUser('id') userId: string): Promise<Garden[]> {
     return this.gardensService.findUserGardens(userId);
   }
 
@@ -28,7 +28,7 @@ export class GardensResolver {
 
   // Garden Mutations
   @Mutation(() => Garden)
-  async createGarden(@Args('input') createGardenInput: CreateGardenInput, @CurrentUser('sub') userId: string): Promise<Garden> {
+  async createGarden(@Args('input') createGardenInput: CreateGardenInput, @CurrentUser('id') userId: string): Promise<Garden> {
     return this.gardensService.createGarden(createGardenInput, userId);
   }
 
@@ -36,19 +36,19 @@ export class GardensResolver {
   async updateGarden(
     @Args('id', { type: () => ID }) id: string,
     @Args('input') updateGardenInput: UpdateGardenInput,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ): Promise<Garden> {
     return this.gardensService.updateGarden(id, updateGardenInput, userId);
   }
 
   @Mutation(() => Boolean)
-  async deleteGarden(@Args('id', { type: () => ID }) id: string, @CurrentUser('sub') userId: string): Promise<boolean> {
+  async deleteGarden(@Args('id', { type: () => ID }) id: string, @CurrentUser('id') userId: string): Promise<boolean> {
     return this.gardensService.deleteGarden(id, userId);
   }
 
   // Cultivation Queries
   @Query(() => [Cultivation], { name: 'getUserCultivations' })
-  async getUserCultivations(@CurrentUser('sub') userId: string): Promise<Cultivation[]> {
+  async getUserCultivations(@CurrentUser('id') userId: string): Promise<Cultivation[]> {
     return this.gardensService.findUserCultivations(userId);
   }
 
@@ -59,7 +59,7 @@ export class GardensResolver {
 
   // Cultivation Mutations
   @Mutation(() => Cultivation)
-  async createCultivation(@Args('input') createCultivationInput: CreateCultivationInput, @CurrentUser('sub') userId: string): Promise<Cultivation> {
+  async createCultivation(@Args('input') createCultivationInput: CreateCultivationInput, @CurrentUser('id') userId: string): Promise<Cultivation> {
     return this.gardensService.createCultivation(createCultivationInput, userId);
   }
 
@@ -67,13 +67,13 @@ export class GardensResolver {
   async updateCultivation(
     @Args('id', { type: () => ID }) id: string,
     @Args('input') updateCultivationInput: UpdateCultivationInput,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ): Promise<Cultivation> {
     return this.gardensService.updateCultivation(id, updateCultivationInput, userId);
   }
 
   @Mutation(() => Boolean)
-  async deleteCultivation(@Args('id', { type: () => ID }) id: string, @CurrentUser('sub') userId: string): Promise<boolean> {
+  async deleteCultivation(@Args('id', { type: () => ID }) id: string, @CurrentUser('id') userId: string): Promise<boolean> {
     return this.gardensService.deleteCultivation(id, userId);
   }
 }

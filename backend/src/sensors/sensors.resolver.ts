@@ -23,23 +23,23 @@ export class SensorsResolver {
   }
 
   @Query(() => [Sensor], { name: 'getUserSensors' })
-  async getUserSensors(@CurrentUser('sub') userId: string): Promise<Sensor[]> {
+  async getUserSensors(@CurrentUser('id') userId: string): Promise<Sensor[]> {
     return this.sensorsService.findUserSensors(userId);
   }
 
   @Query(() => [Sensor], { name: 'getGardenSensors' })
-  async getGardenSensors(@Args('gardenId', { type: () => ID }) gardenId: string, @CurrentUser('sub') userId: string): Promise<Sensor[]> {
+  async getGardenSensors(@Args('gardenId', { type: () => ID }) gardenId: string, @CurrentUser('id') userId: string): Promise<Sensor[]> {
     return this.sensorsService.findGardenSensors(gardenId, userId);
   }
 
   @Query(() => [Sensor], { name: 'getCultivationSensors' })
-  async getCultivationSensors(@Args('cultivationId', { type: () => ID }) cultivationId: string, @CurrentUser('sub') userId: string): Promise<Sensor[]> {
+  async getCultivationSensors(@Args('cultivationId', { type: () => ID }) cultivationId: string, @CurrentUser('id') userId: string): Promise<Sensor[]> {
     return this.sensorsService.findCultivationSensors(cultivationId, userId);
   }
 
   // Sensor Mutations
   @Mutation(() => Sensor)
-  async createSensor(@Args('input') createSensorInput: CreateSensorInput, @CurrentUser('sub') userId: string): Promise<Sensor> {
+  async createSensor(@Args('input') createSensorInput: CreateSensorInput, @CurrentUser('id') userId: string): Promise<Sensor> {
     return this.sensorsService.createSensor(createSensorInput, userId);
   }
 
@@ -47,19 +47,19 @@ export class SensorsResolver {
   async updateSensor(
     @Args('id', { type: () => ID }) id: string,
     @Args('input') updateSensorInput: UpdateSensorInput,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ): Promise<Sensor> {
     return this.sensorsService.updateSensor(id, updateSensorInput, userId);
   }
 
   @Mutation(() => Boolean)
-  async deleteSensor(@Args('id', { type: () => ID }) id: string, @CurrentUser('sub') userId: string): Promise<boolean> {
+  async deleteSensor(@Args('id', { type: () => ID }) id: string, @CurrentUser('id') userId: string): Promise<boolean> {
     return this.sensorsService.deleteSensor(id, userId);
   }
 
   // MQTT and Data Queries
   @Query(() => MqttConnectionInfo, { name: 'getMqttConnectionInfo' })
-  async getMqttConnectionInfo(@Args('sensorId', { type: () => ID }) sensorId: string, @CurrentUser('sub') userId: string): Promise<MqttConnectionInfo> {
+  async getMqttConnectionInfo(@Args('sensorId', { type: () => ID }) sensorId: string, @CurrentUser('id') userId: string): Promise<MqttConnectionInfo> {
     return this.sensorsService.getMqttConnectionInfo(sensorId, userId);
   }
 
@@ -67,13 +67,13 @@ export class SensorsResolver {
   async getSensorData(
     @Args('sensorId', { type: () => ID }) sensorId: string,
     @Args('query') query: SensorDataQueryInput,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ): Promise<SensorDataPoint[]> {
     return this.sensorsService.getSensorData(sensorId, userId, query);
   }
 
   @Query(() => SensorDataPoint, { name: 'getLatestSensorValue', nullable: true })
-  async getLatestSensorValue(@Args('sensorId', { type: () => ID }) sensorId: string, @CurrentUser('sub') userId: string): Promise<SensorDataPoint | null> {
+  async getLatestSensorValue(@Args('sensorId', { type: () => ID }) sensorId: string, @CurrentUser('id') userId: string): Promise<SensorDataPoint | null> {
     return this.sensorsService.getLatestSensorValue(sensorId, userId);
   }
 
@@ -82,7 +82,7 @@ export class SensorsResolver {
   async sendSensorCommand(
     @Args('sensorId', { type: () => ID }) sensorId: string,
     @Args('input') input: SendCommandInput,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('id') userId: string,
   ): Promise<boolean> {
     await this.sensorsService.sendSensorCommand(sensorId, userId, input.command, input.parameters);
     return true;

@@ -48,7 +48,7 @@
 - WebSocket Port: 9001 (for web applications)
 - Anonymous access enabled for development
 - Persistent message storage
-- Topics structure: `orto/{garden_id}/sensor/{sensor_type}/{zone_id}`
+- Topics structure: `smartgarden/{userId}/{sensorId}/{messageType}` (data/status/command)
 
 ### Redis Configuration
 - Port: 6379

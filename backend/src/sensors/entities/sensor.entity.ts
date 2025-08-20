@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, Unique } from 'typeorm';
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { Garden } from '../../gardens/entities/garden.entity';
 import { Cultivation } from '../../gardens/entities/cultivation.entity';
+import { User } from '../../users/entities/user.entity';
 
 export enum SensorType {
   TEMPERATURE = 'temperature',
@@ -56,13 +57,14 @@ class SensorThresholds {
 
 @Entity('sensors')
 @ObjectType()
+@Unique(['deviceId', 'user'])
 export class Sensor {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Field()
-  @Column({ unique: true })
+  @Column()
   deviceId: string;
 
   @Field()
@@ -110,6 +112,9 @@ export class Sensor {
   @Field(() => SensorThresholds, { nullable: true })
   @Column('json', { nullable: true })
   thresholds?: SensorThresholds;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user: User;
 
   // Flexible relationships - only one will be set based on locationLevel
   @Field(() => Garden, { nullable: true })

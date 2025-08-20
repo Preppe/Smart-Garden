@@ -44,7 +44,7 @@ const MqttConnectionInfo: React.FC<MqttConnectionInfoProps> = ({
 
   const examplePayload = {
     value: 23.5,
-    timestamp: new Date().toISOString(),
+    timestamp: Math.floor(Date.now() / 1000), // Unix timestamp in seconds
     token: connectionInfo.token
   };
 
@@ -54,7 +54,7 @@ const MqttConnectionInfo: React.FC<MqttConnectionInfoProps> = ({
       offset: 0.5,
       multiplier: 1.02
     },
-    timestamp: new Date().toISOString()
+    timestamp: Math.floor(Date.now() / 1000) // Unix timestamp in seconds
   };
 
   return (

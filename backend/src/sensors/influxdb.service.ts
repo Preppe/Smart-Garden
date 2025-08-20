@@ -7,7 +7,7 @@ export interface SensorDataPoint {
   sensorId: string;
   userId: string;
   value: number;
-  timestamp?: Date;
+  timestamp?: number;
 }
 
 export interface SensorDataQuery {
@@ -56,11 +56,16 @@ export class InfluxDbService implements OnModuleInit, OnModuleDestroy {
 
   async writeSensorData(data: SensorDataPoint): Promise<void> {
     try {
+      // Convert Unix timestamp to nanoseconds for InfluxDB
+      const timestamp = data.timestamp 
+        ? new Date(data.timestamp * 1000) // Convert seconds to milliseconds for Date constructor
+        : new Date();
+
       const point = new Point('sensor_data')
         .tag('sensor_id', data.sensorId)
         .tag('user_id', data.userId)
         .floatField('value', data.value)
-        .timestamp(data.timestamp || new Date());
+        .timestamp(timestamp);
 
       this.writeApi.writePoint(point);
       await this.writeApi.flush();
@@ -91,7 +96,7 @@ export class InfluxDbService implements OnModuleInit, OnModuleDestroy {
           next: (row, tableMeta) => {
             const o = tableMeta.toObject(row);
             result.push({
-              time: o._time,
+              time: Math.floor(new Date(o._time).getTime() / 1000), // Convert to Unix timestamp in seconds
               value: o._value,
               sensorId: o.sensor_id,
               userId: o.user_id,
@@ -132,7 +137,7 @@ export class InfluxDbService implements OnModuleInit, OnModuleDestroy {
           next: (row, tableMeta) => {
             const o = tableMeta.toObject(row);
             result.push({
-              time: o._time,
+              time: Math.floor(new Date(o._time).getTime() / 1000), // Convert to Unix timestamp in seconds
               value: o._value,
               sensorId: o.sensor_id,
               userId: o.user_id,

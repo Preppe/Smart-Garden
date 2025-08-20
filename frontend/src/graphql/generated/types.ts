@@ -360,7 +360,7 @@ export type SensorCalibrationInput = {
 export type SensorDataPoint = {
   __typename?: 'SensorDataPoint';
   sensorId: Scalars['String']['output'];
-  time: Scalars['String']['output'];
+  time: Scalars['Int']['output'];
   userId: Scalars['String']['output'];
   value: Scalars['Float']['output'];
 };
@@ -651,14 +651,14 @@ export type GetSensorDataQueryVariables = Exact<{
 }>;
 
 
-export type GetSensorDataQuery = { __typename?: 'Query', getSensorData: Array<{ __typename?: 'SensorDataPoint', time: string, value: number, sensorId: string, userId: string }> };
+export type GetSensorDataQuery = { __typename?: 'Query', getSensorData: Array<{ __typename?: 'SensorDataPoint', time: number, value: number, sensorId: string, userId: string }> };
 
 export type GetLatestSensorValueQueryVariables = Exact<{
   sensorId: Scalars['ID']['input'];
 }>;
 
 
-export type GetLatestSensorValueQuery = { __typename?: 'Query', getLatestSensorValue?: { __typename?: 'SensorDataPoint', time: string, value: number, sensorId: string, userId: string } | null | undefined };
+export type GetLatestSensorValueQuery = { __typename?: 'Query', getLatestSensorValue?: { __typename?: 'SensorDataPoint', time: number, value: number, sensorId: string, userId: string } | null | undefined };
 
 export type GetAllGardenSensorsQueryVariables = Exact<{
   gardenId: Scalars['ID']['input'];

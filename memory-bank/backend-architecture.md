@@ -184,7 +184,7 @@ deleteSensor(id: ID!): Boolean!
 
 ### 1. JWT Authentication
 - Tutti gli endpoint protetti con @UseGuards(JwtAuthGuard)
-- User context estratto con @CurrentUser('sub') userId
+- User context estratto con @CurrentUser('id') userId
 
 ### 2. Ownership Validation
 - Ogni operazione valida che l'utente possieda la risorsa

@@ -57,13 +57,13 @@ const formatValue = (value: number, unit: string) => {
   return `${value.toFixed(1)} ${unit}`;
 };
 
-const formatTime = (timeString: string) => {
-  const date = new Date(timeString);
+const formatTime = (timestamp: number) => {
+  const date = new Date(timestamp * 1000); // Convert Unix timestamp to milliseconds
   return format(date, 'HH:mm', { locale: it });
 };
 
-const formatTooltipTime = (timeString: string) => {
-  const date = new Date(timeString);
+const formatTooltipTime = (timestamp: number) => {
+  const date = new Date(timestamp * 1000); // Convert Unix timestamp to milliseconds
   return format(date, 'dd/MM HH:mm', { locale: it });
 };
 
@@ -87,7 +87,7 @@ const SensorDataChart: React.FC<SensorDataChartProps> = ({
       value: point.value,
       formattedTime: formatTime(point.time),
       fullTime: formatTooltipTime(point.time),
-    })).sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+    })).sort((a, b) => a.time - b.time); // Direct numeric comparison for Unix timestamps
   }, [data]);
 
   // Calculate statistics

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Sensor } from './entities/sensor.entity';
 import { Garden } from '../gardens/entities/garden.entity';
 import { Cultivation } from '../gardens/entities/cultivation.entity';
+import { User } from '../users/entities/user.entity';
 import { GardensService } from '../gardens/gardens.service';
 import { CreateSensorInput } from './dto/create-sensor.input';
 import { UpdateSensorInput } from './dto/update-sensor.input';
@@ -16,6 +17,8 @@ export class SensorsService {
   constructor(
     @InjectRepository(Sensor)
     private sensorsRepository: Repository<Sensor>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
     private gardensService: GardensService,
     private mqttService: MqttService,
     private influxDbService: InfluxDbService,
@@ -43,6 +46,28 @@ export class SensorsService {
       cultivation = await this.gardensService.validateCultivationOwnership(cultivationId, userId);
     }
 
+    // Validate required parameters for MQTT topic generation
+    if (!userId) {
+      throw new BadRequestException('User ID is required for sensor creation');
+    }
+    if (!createSensorInput.deviceId || createSensorInput.deviceId.trim() === '') {
+      throw new BadRequestException('Device ID is required and cannot be empty');
+    }
+
+    // Check if user exists
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Check if deviceId already exists for this user
+    const existingSensor = await this.sensorsRepository.findOne({
+      where: { deviceId: createSensorInput.deviceId, user: { id: userId } }
+    });
+    if (existingSensor) {
+      throw new BadRequestException(`Device ID '${createSensorInput.deviceId}' already exists for this user`);
+    }
+    
     // Generate MQTT configuration
     const connectionToken = uuidv4();
     const mqttTopic = this.mqttService.generateSensorTopic(userId, createSensorInput.deviceId);
@@ -50,6 +75,7 @@ export class SensorsService {
     const sensor = this.sensorsRepository.create({
       ...sensorData,
       locationLevel,
+      user,
       garden,
       cultivation,
       mqttTopic,
@@ -65,7 +91,7 @@ export class SensorsService {
   async findSensorById(id: string): Promise<Sensor> {
     const sensor = await this.sensorsRepository.findOne({
       where: { id },
-      relations: { garden: true, cultivation: true },
+      relations: { user: true, garden: true, cultivation: true },
     });
 
     if (!sensor) {
@@ -77,7 +103,7 @@ export class SensorsService {
 
   async findUserSensors(userId: string): Promise<Sensor[]> {
     return this.sensorsRepository.find({
-      where: [{ garden: { user: { id: userId } } }, { cultivation: { garden: { user: { id: userId } } } }],
+      where: { user: { id: userId } },
       relations: { garden: true, cultivation: true },
     });
   }
@@ -87,7 +113,10 @@ export class SensorsService {
     await this.gardensService.validateGardenOwnership(gardenId, userId);
 
     return this.sensorsRepository.find({
-      where: [{ garden: { id: gardenId } }, { cultivation: { garden: { id: gardenId } } }],
+      where: [
+        { user: { id: userId }, garden: { id: gardenId } },
+        { user: { id: userId }, cultivation: { garden: { id: gardenId } } }
+      ],
       relations: { garden: true, cultivation: true },
     });
   }
@@ -97,18 +126,15 @@ export class SensorsService {
     await this.gardensService.validateCultivationOwnership(cultivationId, userId);
 
     return this.sensorsRepository.find({
-      where: { cultivation: { id: cultivationId } },
+      where: { user: { id: userId }, cultivation: { id: cultivationId } },
       relations: { garden: true, cultivation: true },
     });
   }
 
   async updateSensor(id: string, updateSensorInput: UpdateSensorInput, userId: string): Promise<Sensor> {
     const sensor = await this.sensorsRepository.findOne({
-      where: [
-        { id, garden: { user: { id: userId } } },
-        { id, cultivation: { garden: { user: { id: userId } } } },
-      ],
-      relations: { garden: true, cultivation: true },
+      where: { id, user: { id: userId } },
+      relations: { user: true, garden: true, cultivation: true },
     });
 
     if (!sensor) {
@@ -121,11 +147,8 @@ export class SensorsService {
 
   async deleteSensor(id: string, userId: string): Promise<boolean> {
     const sensor = await this.sensorsRepository.findOne({
-      where: [
-        { id, garden: { user: { id: userId } } },
-        { id, cultivation: { garden: { user: { id: userId } } } },
-      ],
-      relations: { garden: true, cultivation: true },
+      where: { id, user: { id: userId } },
+      relations: { user: true, garden: true, cultivation: true },
     });
 
     if (!sensor) {
@@ -141,13 +164,12 @@ export class SensorsService {
   }
 
   async getMqttConnectionInfo(sensorId: string, userId: string) {
-    const sensor = await this.findSensorById(sensorId);
+    const sensor = await this.sensorsRepository.findOne({
+      where: { id: sensorId, user: { id: userId } },
+      relations: { user: true },
+    });
 
-    // Verify ownership
-    if (sensor.garden && sensor.garden.user.id !== userId) {
-      throw new NotFoundException('Sensor not found');
-    }
-    if (sensor.cultivation && sensor.cultivation.garden.user.id !== userId) {
+    if (!sensor) {
       throw new NotFoundException('Sensor not found');
     }
 
@@ -185,11 +207,8 @@ export class SensorsService {
 
   private async validateSensorOwnership(sensorId: string, userId: string): Promise<void> {
     const sensor = await this.sensorsRepository.findOne({
-      where: [
-        { id: sensorId, garden: { user: { id: userId } } },
-        { id: sensorId, cultivation: { garden: { user: { id: userId } } } },
-      ],
-      relations: { garden: { user: true }, cultivation: { garden: { user: true } } },
+      where: { id: sensorId, user: { id: userId } },
+      relations: { user: true },
     });
 
     if (!sensor) {
