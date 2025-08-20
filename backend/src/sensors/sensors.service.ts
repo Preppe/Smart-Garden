@@ -91,7 +91,7 @@ export class SensorsService {
   async findSensorById(id: string): Promise<Sensor> {
     const sensor = await this.sensorsRepository.findOne({
       where: { id },
-      relations: { user: true, garden: true, cultivation: true },
+      relations: { user: true, garden: true, cultivation: { garden: true } },
     });
 
     if (!sensor) {
@@ -104,7 +104,7 @@ export class SensorsService {
   async findUserSensors(userId: string): Promise<Sensor[]> {
     return this.sensorsRepository.find({
       where: { user: { id: userId } },
-      relations: { garden: true, cultivation: true },
+      relations: { garden: true, cultivation: { garden: true } },
     });
   }
 
@@ -117,7 +117,7 @@ export class SensorsService {
         { user: { id: userId }, garden: { id: gardenId } },
         { user: { id: userId }, cultivation: { garden: { id: gardenId } } }
       ],
-      relations: { garden: true, cultivation: true },
+      relations: { garden: true, cultivation: { garden: true } },
     });
   }
 
@@ -127,14 +127,14 @@ export class SensorsService {
 
     return this.sensorsRepository.find({
       where: { user: { id: userId }, cultivation: { id: cultivationId } },
-      relations: { garden: true, cultivation: true },
+      relations: { garden: true, cultivation: { garden: true } },
     });
   }
 
   async updateSensor(id: string, updateSensorInput: UpdateSensorInput, userId: string): Promise<Sensor> {
     const sensor = await this.sensorsRepository.findOne({
       where: { id, user: { id: userId } },
-      relations: { user: true, garden: true, cultivation: true },
+      relations: { user: true, garden: true, cultivation: { garden: true } },
     });
 
     if (!sensor) {
@@ -148,7 +148,7 @@ export class SensorsService {
   async deleteSensor(id: string, userId: string): Promise<boolean> {
     const sensor = await this.sensorsRepository.findOne({
       where: { id, user: { id: userId } },
-      relations: { user: true, garden: true, cultivation: true },
+      relations: { user: true, garden: true, cultivation: { garden: true } },
     });
 
     if (!sensor) {
